@@ -29,6 +29,19 @@ func (session *Session) getId() string {
 	return session.id
 }
 
+func (session *Session) Set(key interface{}, value interface{}) {
+	session.lock.Lock()
+	defer session.lock.Unlock()
+	session.values[key] = value
+}
+
+func (session *Session) Get(key interface{}) (value interface{}, ok bool) {
+	session.lock.RLock()
+	defer session.lock.RUnlock()
+	value, ok = session.values[key]
+	return
+}
+
 type Options struct {
 	Path               string
 	Domain             string
