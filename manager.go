@@ -102,13 +102,18 @@ func NewManager(options Options, sessionHandler func(*Session, int)) *Manager {
 	return manager
 }
 
-// SessionRead get memory session store by sid
+// SessionRead get memory session store http request
 func (manager *Manager) GetSession(request *http.Request) *Session {
 	cookie, err := request.Cookie("ID")
 	if err != nil {
 		return nil
 	}
 	sessionId := cookie.Value
+	return manager.GetSessionById(sessionId)
+}
+
+// SessionRead get memory session store by sid
+func (manager *Manager) GetSessionById(sessionId string) *Session {
 	manager.lock.RLock()
 	if element, ok := manager.sessions[sessionId]; ok {
 		go manager.updateSessionAccessTime(sessionId)
