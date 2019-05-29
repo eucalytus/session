@@ -90,7 +90,15 @@ func NewManager(options Options, sessionHandler func(*Session, int)) *Manager {
 			manager.addSession(s)
 		}
 	}
-	manager.periodicCleanup(time.Duration(time.Second*time.Duration(options.GcInterval)), options.GcStopChan)
+	interval := 60
+	if options.GcInterval > 0 {
+		interval = options.GcInterval
+	}
+	stopChan := make(<-chan struct{})
+	if options.GcStopChan != nil {
+		stopChan = options.GcStopChan
+	}
+	manager.periodicCleanup(time.Duration(time.Second*time.Duration(interval)), stopChan)
 	return manager
 }
 
@@ -117,7 +125,7 @@ func (manager *Manager) CreatSession(w http.ResponseWriter) *Session {
 	sid := genSessionId(48)
 	session := &Session{id: sid, timeAccessed: time.Now().Unix(), values: make(map[interface{}]interface{})}
 	manager.addSession(session)
-	addCookie(w, "ID", sid)
+	manager.addCookie(w, "ID", sid)
 	if manager.sessionHandler != nil {
 		manager.sessionHandler(session, Created)
 	}
@@ -186,11 +194,12 @@ func (manager *Manager) addSession(session *Session) {
 	manager.sessions[session.id] = element
 }
 
-func addCookie(w http.ResponseWriter, name string, value string) {
+func (manager *Manager) addCookie(w http.ResponseWriter, name string, value string) {
 	cookie := http.Cookie{
 		Name:     name,
 		Value:    value,
-		HttpOnly: true,
+		HttpOnly: manager.options.HttpOnly,
+		MaxAge:   manager.options.MaxAge,
 	}
 	http.SetCookie(w, &cookie)
 }
