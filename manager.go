@@ -32,7 +32,7 @@ func NewSession(id string, timeAccessed int64) *Session {
 	}
 }
 
-func (session *Session) getId() string {
+func (session *Session) GetId() string {
 	return session.id
 }
 
