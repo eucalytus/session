@@ -16,6 +16,7 @@ func init() {
 const (
 	Created   = 1
 	Destroyed = 2
+	Update    = 3
 )
 
 type Session struct {
@@ -23,6 +24,7 @@ type Session struct {
 	values       map[interface{}]interface{}
 	timeAccessed int64
 	lock         sync.RWMutex
+	manager      *Manager
 }
 
 func NewSession(id string, timeAccessed int64) *Session {
@@ -44,6 +46,9 @@ func (session *Session) Set(key interface{}, value interface{}) {
 	session.lock.Lock()
 	defer session.lock.Unlock()
 	session.values[key] = value
+	if session.manager.sessionHandler != nil {
+		session.manager.sessionHandler(session, Update)
+	}
 }
 
 func (session *Session) Get(key interface{}) (value interface{}, ok bool) {
@@ -54,16 +59,15 @@ func (session *Session) Get(key interface{}) (value interface{}, ok bool) {
 }
 
 type Options struct {
-	Path                    string
-	Domain                  string
-	MaxAge                  int
-	Secure                  bool
-	HttpOnly                bool
-	SessionMaxLifeTime      int64
-	GcInterval              int
-	GcStopChan              <-chan struct{}
-	SessionPersistentHandle func(*Session)
-	SessionLoader           func() []*Session
+	Path               string
+	Domain             string
+	MaxAge             int
+	Secure             bool
+	HttpOnly           bool
+	SessionMaxLifeTime int64
+	GcInterval         int
+	GcStopChan         <-chan struct{}
+	SessionLoader      func() []*Session
 }
 
 // Manager manage the created sessions
@@ -87,6 +91,7 @@ func NewManager(options Options, sessionHandler func(*Session, int)) *Manager {
 	if options.SessionLoader != nil {
 		initSessions := options.SessionLoader()
 		for _, s := range initSessions {
+			s.manager = manager
 			manager.addSession(s)
 		}
 	}
@@ -98,6 +103,7 @@ func NewManager(options Options, sessionHandler func(*Session, int)) *Manager {
 	if options.GcStopChan != nil {
 		stopChan = options.GcStopChan
 	}
+	manager.options = options
 	go manager.periodicCleanup(time.Duration(time.Second*time.Duration(interval)), stopChan)
 	return manager
 }
@@ -124,11 +130,11 @@ func (manager *Manager) GetSessionById(sessionId string) *Session {
 	return nil
 }
 
-func (manager *Manager) CreatSession(w http.ResponseWriter) *Session {
+func (manager *Manager) CreateSession(w http.ResponseWriter) *Session {
 	manager.lock.Lock()
 	defer manager.lock.Unlock()
 	sid := genSessionId(48)
-	session := &Session{id: sid, timeAccessed: time.Now().Unix(), values: make(map[interface{}]interface{})}
+	session := &Session{id: sid, timeAccessed: time.Now().Unix(), values: make(map[interface{}]interface{}), manager: manager}
 	manager.addSession(session)
 	manager.addCookie(w, "ID", sid)
 	if manager.sessionHandler != nil {
