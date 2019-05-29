@@ -106,6 +106,13 @@ func (manager *Manager) CreatSession(w http.ResponseWriter) *Session {
 	return session
 }
 
+// get all managed session size
+func (manager *Manager) GetSessionSize() int {
+	manager.lock.RLock()
+	defer manager.lock.RUnlock()
+	return len(manager.sessions)
+}
+
 // periodicCleanup runs Cleanup every interval. Close quit channel to stop.
 func (manager *Manager) periodicCleanup(interval time.Duration, quit <-chan struct{}) {
 	t := time.NewTicker(interval)
