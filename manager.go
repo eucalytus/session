@@ -98,7 +98,7 @@ func NewManager(options Options, sessionHandler func(*Session, int)) *Manager {
 	if options.GcStopChan != nil {
 		stopChan = options.GcStopChan
 	}
-	manager.periodicCleanup(time.Duration(time.Second*time.Duration(interval)), stopChan)
+	go manager.periodicCleanup(time.Duration(time.Second*time.Duration(interval)), stopChan)
 	return manager
 }
 
