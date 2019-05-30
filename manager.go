@@ -38,6 +38,15 @@ func (session *Session) GetId() string {
 	return session.id
 }
 
+//session id is critical information, we should mask it
+func (session *Session) GetMaskedSessionId() string {
+	buf := []byte(session.id)
+	for i := 3; i < len(buf)-3; i++ {
+		buf[i] = '*'
+	}
+	return string(buf)
+}
+
 func (session *Session) getTimeAccessed() int64 {
 	return session.timeAccessed
 }

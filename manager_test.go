@@ -25,3 +25,10 @@ func TestNewManagerWithLoader(t *testing.T) {
 	assert.NotNil(t, manager.GetSessionById("b"))
 	assert.Nil(t, manager.GetSessionById("c"))
 }
+
+func TestSession_GetMaskedSessionId(t *testing.T) {
+	s := &Session{id: "abc12345abc"}
+	assert.Equal(t, "abc*****abc", s.GetMaskedSessionId())
+	s.id = "ac"
+	assert.Equal(t, "ac", s.GetMaskedSessionId())
+}
