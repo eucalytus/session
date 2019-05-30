@@ -58,6 +58,11 @@ func (session *Session) Get(key interface{}) (value interface{}, ok bool) {
 	return
 }
 
+//invalidate session will remove session from registry
+func (session *Session) Invalidate() {
+	session.manager.deleteSession(session)
+}
+
 type Options struct {
 	Path               string
 	Domain             string
@@ -122,7 +127,7 @@ func (manager *Manager) GetSession(request *http.Request) *Session {
 func (manager *Manager) GetSessionById(sessionId string) *Session {
 	manager.lock.RLock()
 	if element, ok := manager.sessions[sessionId]; ok {
-		go manager.updateSessionAccessTime(sessionId)
+		go manager.updateSessionAccessTime(sessionId, time.Now().Unix())
 		manager.lock.RUnlock()
 		return element.Value.(*Session)
 	}
@@ -190,11 +195,11 @@ func (manager *Manager) sessionGC() {
 }
 
 // SessionUpdate expand time of Session store by id in memory Session
-func (manager *Manager) updateSessionAccessTime(sid string) {
+func (manager *Manager) updateSessionAccessTime(sid string, time int64) {
 	manager.lock.Lock()
 	defer manager.lock.Unlock()
 	if element, ok := manager.sessions[sid]; ok {
-		element.Value.(*Session).timeAccessed = time.Now().Unix()
+		element.Value.(*Session).timeAccessed = time
 		manager.list.MoveToFront(element)
 	}
 }
@@ -203,6 +208,11 @@ func (manager *Manager) updateSessionAccessTime(sid string) {
 func (manager *Manager) addSession(session *Session) {
 	element := manager.list.PushFront(session)
 	manager.sessions[session.id] = element
+}
+
+func (manager *Manager) deleteSession(session *Session) {
+	manager.updateSessionAccessTime(session.id, -1)
+	manager.sessionGC()
 }
 
 func (manager *Manager) addCookie(w http.ResponseWriter, name string, value string) {
