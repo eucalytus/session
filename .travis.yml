@@ -1,2 +1,10 @@
 language: go
-install: false
+
+before_install:
+  - go get -t -v ./...
+
+script:
+  - go test -race -coverprofile=coverage.txt -covermode=atomic
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash) -t ed5d63c0-c50d-4e3f-8d1d-ffba8739bef5
