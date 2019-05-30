@@ -1,5 +1,7 @@
 # session
 
+[![Build Status](https://travis-ci.org/eucalytus/session.svg?branch=master)](https://travis-ci.org/eucalytus/session)
+
 # How to use it
 
 ```go
