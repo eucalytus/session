@@ -73,34 +73,35 @@ func (session *Session) Invalidate() {
 }
 
 type Options struct {
-	Path               string
-	Domain             string
-	MaxAge             int
-	Secure             bool
-	HttpOnly           bool
-	SessionMaxLifeTime int64
-	GcInterval         int
-	GcStopChan         <-chan struct{}
-	SessionLoader      func() []*Session
+	Path     string
+	Domain   string
+	MaxAge   int
+	Secure   bool
+	HttpOnly bool
+
+	MaxInactiveInterval int64
+	GcInterval          int
+	GcStopChan          <-chan struct{}
+	SessionLoader       func() []*Session
 }
 
 // Manager manage the created sessions
 type Manager struct {
-	lock           sync.RWMutex             // locker
-	sessions       map[string]*list.Element // map in memory
-	list           *list.List               // for gc
-	maxLifeTime    int64
-	sessionHandler func(*Session, int)
-	options        Options
+	lock                sync.RWMutex             // locker
+	sessions            map[string]*list.Element // map in memory
+	list                *list.List               // for gc
+	maxInactiveInterval int64
+	sessionHandler      func(*Session, int)
+	options             Options
 }
 
 //init new session manager and start gc
 func NewManager(options Options, sessionHandler func(*Session, int)) *Manager {
 	manager := &Manager{
-		list:           list.New(),
-		sessions:       make(map[string]*list.Element),
-		maxLifeTime:    options.SessionMaxLifeTime,
-		sessionHandler: sessionHandler,
+		list:                list.New(),
+		sessions:            make(map[string]*list.Element),
+		maxInactiveInterval: options.MaxInactiveInterval,
+		sessionHandler:      sessionHandler,
 	}
 	if options.SessionLoader != nil {
 		initSessions := options.SessionLoader()
@@ -186,7 +187,7 @@ func (manager *Manager) sessionGC() {
 		if element == nil {
 			break
 		}
-		if (element.Value.(*Session).timeAccessed + manager.maxLifeTime) < time.Now().Unix() {
+		if (element.Value.(*Session).timeAccessed + manager.maxInactiveInterval) < time.Now().Unix() {
 			manager.lock.RUnlock()
 			manager.lock.Lock()
 			manager.list.Remove(element)
