@@ -4,6 +4,7 @@
 [![Language](https://img.shields.io/badge/Language-Go-blue.svg)](https://golang.org/)
 [![Go Report Card](https://goreportcard.com/badge/github.com/eucalytus/session)](https://goreportcard.com/report/github.com/eucalytus/session)
 [![Build Status](https://travis-ci.org/eucalytus/session.svg?branch=master)](https://travis-ci.org/eucalytus/session)
+![CircleCI](https://img.shields.io/circleci/build/github/eucalytus/session/master.svg)
 ![Codecov](https://img.shields.io/codecov/c/github/eucalytus/session.svg)
 
 # How to use it
