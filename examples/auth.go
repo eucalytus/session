@@ -1,8 +1,3 @@
-# session
-
-# How to use it
-
-```go
 package main
 
 import (
@@ -63,4 +58,3 @@ func main() {
 
 	http.ListenAndServe("0.0.0.0:8000", nil)
 }
-```
