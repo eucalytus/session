@@ -24,3 +24,35 @@ func GetSession(c *gin.Context) *Session {
 	}
 	return nil
 }
+
+func GetSessionSize(c *gin.Context) int {
+	manager, found := c.Get(DefaultKey)
+	if manager != nil && found {
+		return manager.(*Manager).GetSessionSize()
+	}
+	return -1
+}
+
+func GetSessionById(c *gin.Context, id string) *Session {
+	manager, found := c.Get(DefaultKey)
+	if manager != nil && found {
+		return manager.(*Manager).GetSessionById(id)
+	}
+	return nil
+}
+
+func CreateSession(c *gin.Context) *Session {
+	manager, found := c.Get(DefaultKey)
+	if manager != nil && found {
+		return manager.(*Manager).GetSession(c.Request)
+	}
+	return nil
+}
+
+func GetManager(c *gin.Context) *Manager {
+	manager, found := c.Get(DefaultKey)
+	if manager != nil && found {
+		return manager.(*Manager)
+	}
+	return nil
+}
