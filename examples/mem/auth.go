@@ -11,8 +11,9 @@ func main() {
 	manager := session.NewManager(session.Options{
 		MaxInactiveInterval: 1800, MaxAge: 84000, HttpOnly: true,
 	},
+		session.CreateMemSession,
 		//listen session event
-		func(s *session.Session, event int) {
+		func(s session.Session, event int) {
 			if event == session.Created {
 				log.Printf("new session is created, sessionId=%s\n", s.GetMaskedSessionId())
 			} else if event == session.Destroyed {
@@ -40,7 +41,11 @@ func main() {
 	http.HandleFunc("/login", func(response http.ResponseWriter, request *http.Request) {
 		s := manager.GetSession(request)
 		if s == nil {
-			s = manager.CreateSession(response)
+			temp, err := manager.CreateSession(request, response)
+			if err != nil {
+				log.Printf("create session failed: %v\n", err)
+			}
+			s = temp
 		}
 		s.Set("key", "login")
 		response.Write([]byte("OK"))
