@@ -191,6 +191,7 @@ func (manager *Manager) addCookie(w http.ResponseWriter, name string, value stri
 		Value:    value,
 		HttpOnly: manager.options.HttpOnly,
 		MaxAge:   manager.options.MaxAge,
+		Path:     manager.options.Path,
 	}
 	http.SetCookie(w, &c)
 }
