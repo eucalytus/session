@@ -24,7 +24,7 @@ func (session *MemSession) GetId() string {
 	return session.id
 }
 
-//session id is critical information, we should mask it
+//GetMaskedSessionId session id is critical information, we should mask it
 func (session *MemSession) GetMaskedSessionId() string {
 	buf := []byte(session.id)
 	for i := 3; i < len(buf)-3; i++ {
@@ -51,7 +51,7 @@ func (session *MemSession) Get(key interface{}) (value interface{}, ok bool) {
 	return
 }
 
-//invalidate session will remove session from registry
+//Invalidate invalidate session will remove session from registry
 func (session *MemSession) Invalidate() {
 	session.timeAccessed = -1
 	session.values = make(map[interface{}]interface{})

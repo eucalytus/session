@@ -52,7 +52,7 @@ type Manager struct {
 	options             Options
 }
 
-//init new session manager and start gc
+// NewManager init new session manager and start gc
 func NewManager(options Options, SessionCreator func(r *http.Request, w http.ResponseWriter) (Session, error), sessionHandler func(Session, int)) *Manager {
 	manager := &Manager{
 		list:                list.New(),
@@ -77,11 +77,11 @@ func NewManager(options Options, SessionCreator func(r *http.Request, w http.Res
 		stopChan = options.GcStopChan
 	}
 	manager.options = options
-	go manager.periodicCleanup(time.Duration(time.Second*time.Duration(interval)), stopChan)
+	go manager.periodicCleanup(time.Second*time.Duration(interval), stopChan)
 	return manager
 }
 
-// SessionRead get memory session store http request
+// GetSession get memory session store http request
 func (manager *Manager) GetSession(request *http.Request) Session {
 	c, err := request.Cookie("ID")
 	if err != nil {
@@ -91,7 +91,7 @@ func (manager *Manager) GetSession(request *http.Request) Session {
 	return manager.GetSessionById(sessionId)
 }
 
-// SessionRead get memory session store by sid
+// GetSessionById get memory session store by sid
 func (manager *Manager) GetSessionById(sessionId string) Session {
 	manager.lock.RLock()
 	if element, ok := manager.sessions[sessionId]; ok {
@@ -119,7 +119,7 @@ func (manager *Manager) CreateSession(r *http.Request, w http.ResponseWriter) (S
 	return session, nil
 }
 
-// get all managed session size
+// GetSessionSize get all managed session size
 func (manager *Manager) GetSessionSize() int {
 	manager.lock.RLock()
 	defer manager.lock.RUnlock()

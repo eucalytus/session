@@ -2,13 +2,14 @@ package session
 
 import (
 	"errors"
+	"net/http"
+	"sync"
+	"time"
+
 	gonicSession "github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/context"
 	"github.com/gorilla/sessions"
-	"net/http"
-	"sync"
-	"time"
 )
 
 const DefaultKey = "session-key"
@@ -58,14 +59,14 @@ func (session *ginSession) Get(key interface{}) (value interface{}, ok bool) {
 	return
 }
 
-//invalidate session will remove session from registry
+//Invalidate session will remove session from registry
 func (session *ginSession) Invalidate() {
 	session.timeAccessed = -1
 	session.innerSession.Values = make(map[interface{}]interface{})
 	session.innerSession.Save(session.request, session.write)
 }
 
-// gin session middleware
+// UseSession gin session middleware
 func UseSession(options Options, store gonicSession.Store, sessionHandler func(Session, int)) func(*gin.Context) {
 	creator := func(r *http.Request, w http.ResponseWriter) (Session, error) {
 		sid := genSessionId(48)
@@ -88,14 +89,18 @@ func UseSession(options Options, store gonicSession.Store, sessionHandler func(S
 	}
 }
 
-//get the session from gin context
+var lck = sync.Mutex{}
+
+//GetSession get the session from gin context
 func GetSession(c *gin.Context) Session {
 	manager, found := c.Get(DefaultKey)
 	if manager != nil && found {
 		iface := manager.(*Manager).GetSession(c.Request)
 		if iface != nil {
 			session := iface.(*ginSession)
+			lck.Lock()
 			session.innerSession.Values[sessionName] = time.Now().Unix()
+			lck.Unlock()
 			session.request = c.Request
 			session.write = c.Writer
 			return session

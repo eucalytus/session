@@ -1,10 +1,11 @@
 package main
 
 import (
-	"github.com/gin-contrib/sessions/cookie"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
+
+	"github.com/gin-contrib/sessions/cookie"
+	"github.com/gin-gonic/gin"
 
 	"github.com/eucalytus/session"
 )
@@ -13,7 +14,7 @@ func main() {
 	engine := gin.Default()
 	store := cookie.NewStore([]byte("secret"))
 	engine.Use(session.UseSession(session.Options{
-		MaxInactiveInterval: 30, MaxAge: 84000, HttpOnly: true,
+		MaxInactiveInterval: 3600, MaxAge: 84000, HttpOnly: true,
 	}, store,
 		func(s session.Session, event int) {
 			if event == session.Created {
